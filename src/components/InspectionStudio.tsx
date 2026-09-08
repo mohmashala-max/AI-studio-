@@ -5,10 +5,12 @@ import {
   Cpu,
   AlertOctagon,
   CheckCircle,
-  FileText,
-  Sliders,
+  Clock,
   Sparkles,
   Layers,
+  HelpCircle,
+  Eye,
+  Microscope,
 } from "lucide-react";
 import { InspectionResult, Detection, FacilityInfo } from "../types";
 
@@ -18,39 +20,110 @@ interface InspectionStudioProps {
   onInspectionCompleted: (result: InspectionResult) => void;
 }
 
-// Preset trap mock image representations with SVG/Canvas overlays
-const SAMPLE_PRESETS = [
+// Presets focused on Tobacco Beetle (Lasioderma serricorne) vs Drugstore Beetle (Stegobium paniceum)
+const TOBACCO_BEETLE_PRESETS = [
   {
-    id: "preset-high",
-    title: "High Infestation (Threshold Exceeded)",
-    description: "4 cockroaches + 1 beetle detected in corner trap bait",
-    image: "trap-high-pest",
-    trapId: "trap-1",
+    id: "preset-tb-spike",
+    title: "Dusk Catch: Lasioderma serricorne Surge",
+    description: "6 adult tobacco beetles (serrate antennae) + 1 drugstore beetle on Serricornin pad",
+    trapId: "trap-tb-01",
     detections: [
-      { label: "cockroach", confidence: 0.96, area_ratio: 0.034, bbox: [22, 28, 16, 14] as [number, number, number, number] },
-      { label: "cockroach", confidence: 0.91, area_ratio: 0.028, bbox: [45, 35, 14, 12] as [number, number, number, number] },
-      { label: "cockroach", confidence: 0.88, area_ratio: 0.022, bbox: [62, 58, 15, 13] as [number, number, number, number] },
-      { label: "cockroach", confidence: 0.85, area_ratio: 0.029, bbox: [30, 68, 17, 15] as [number, number, number, number] },
-      { label: "beetle", confidence: 0.82, area_ratio: 0.019, bbox: [78, 25, 13, 11] as [number, number, number, number] },
+      {
+        label: "Lasioderma serricorne (Tobacco Beetle)",
+        confidence: 0.96,
+        area_ratio: 0.024,
+        source: "YOLOv8-nano",
+        bbox: [22, 26, 16, 14] as [number, number, number, number],
+        antennae_type: "serrate" as const,
+        elytra_texture: "smooth_pubescent" as const,
+      },
+      {
+        label: "Lasioderma serricorne (Tobacco Beetle)",
+        confidence: 0.94,
+        area_ratio: 0.022,
+        source: "YOLOv8-nano",
+        bbox: [46, 32, 15, 13] as [number, number, number, number],
+        antennae_type: "serrate" as const,
+        elytra_texture: "smooth_pubescent" as const,
+      },
+      {
+        label: "Lasioderma serricorne (Tobacco Beetle)",
+        confidence: 0.91,
+        area_ratio: 0.021,
+        source: "YOLOv8-nano",
+        bbox: [68, 54, 15, 13] as [number, number, number, number],
+        antennae_type: "serrate" as const,
+        elytra_texture: "smooth_pubescent" as const,
+      },
+      {
+        label: "Lasioderma serricorne (Tobacco Beetle)",
+        confidence: 0.89,
+        area_ratio: 0.025,
+        source: "YOLOv8-nano",
+        bbox: [28, 66, 16, 14] as [number, number, number, number],
+        antennae_type: "serrate" as const,
+        elytra_texture: "smooth_pubescent" as const,
+      },
+      {
+        label: "Lasioderma serricorne (Tobacco Beetle)",
+        confidence: 0.92,
+        area_ratio: 0.023,
+        source: "YOLOv8-nano",
+        bbox: [74, 24, 14, 12] as [number, number, number, number],
+        antennae_type: "serrate" as const,
+        elytra_texture: "smooth_pubescent" as const,
+      },
+      {
+        label: "Lasioderma serricorne (Tobacco Beetle)",
+        confidence: 0.88,
+        area_ratio: 0.020,
+        source: "YOLOv8-nano",
+        bbox: [52, 70, 15, 13] as [number, number, number, number],
+        antennae_type: "serrate" as const,
+        elytra_texture: "smooth_pubescent" as const,
+      },
+      {
+        label: "Stegobium paniceum (Drugstore Beetle)",
+        confidence: 0.84,
+        area_ratio: 0.018,
+        source: "YOLOv8-nano",
+        bbox: [38, 44, 14, 12] as [number, number, number, number],
+        antennae_type: "clubbed" as const,
+        elytra_texture: "striate_punctate" as const,
+      },
     ],
   },
   {
-    id: "preset-low",
-    title: "Normal Trap Reading",
-    description: "1 cockroach + 1 fly (Under threshold)",
-    image: "trap-low-pest",
-    trapId: "trap-2",
+    id: "preset-tb-mixed",
+    title: "Morphology Discrimination: Tobacco vs Drugstore",
+    description: "Comparing saw-toothed vs 3-segmented club antennae and smooth vs grooved elytra",
+    trapId: "trap-tb-02",
     detections: [
-      { label: "cockroach", confidence: 0.92, area_ratio: 0.026, bbox: [35, 45, 16, 14] as [number, number, number, number] },
-      { label: "fly", confidence: 0.79, area_ratio: 0.012, bbox: [68, 30, 11, 9] as [number, number, number, number] },
+      {
+        label: "Lasioderma serricorne (Tobacco Beetle)",
+        confidence: 0.95,
+        area_ratio: 0.025,
+        source: "YOLOv8-nano",
+        bbox: [30, 36, 18, 16] as [number, number, number, number],
+        antennae_type: "serrate" as const,
+        elytra_texture: "smooth_pubescent" as const,
+      },
+      {
+        label: "Stegobium paniceum (Drugstore Beetle)",
+        confidence: 0.91,
+        area_ratio: 0.022,
+        source: "YOLOv8-nano",
+        bbox: [62, 40, 17, 15] as [number, number, number, number],
+        antennae_type: "clubbed" as const,
+        elytra_texture: "striate_punctate" as const,
+      },
     ],
   },
   {
-    id: "preset-clean",
-    title: "Clean / Neutral Trap",
-    description: "Pheromone pad fresh, 0 pests identified",
-    image: "trap-clean",
-    trapId: "trap-2",
+    id: "preset-tb-clean",
+    title: "Clean Baseline: Fresh Serricornin Lure",
+    description: "Active Serricornin pheromone pad, 0 beetles trapped",
+    trapId: "trap-tb-01",
     detections: [],
   },
 ];
@@ -60,8 +133,8 @@ export const InspectionStudio: React.FC<InspectionStudioProps> = ({
   token,
   onInspectionCompleted,
 }) => {
-  const [selectedTrap, setSelectedTrap] = useState<string>(facility.traps[0] || "trap-1");
-  const [selectedPreset, setSelectedPreset] = useState<string>("preset-high");
+  const [selectedTrap, setSelectedTrap] = useState<string>(facility.traps[0] || "trap-tb-01");
+  const [selectedPreset, setSelectedPreset] = useState<string>("preset-tb-spike");
   const [customImageUri, setCustomImageUri] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [isInspecting, setIsInspecting] = useState<boolean>(false);
@@ -69,7 +142,7 @@ export const InspectionStudio: React.FC<InspectionStudioProps> = ({
   const [customThreshold, setCustomThreshold] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const activePreset = SAMPLE_PRESETS.find((p) => p.id === selectedPreset);
+  const activePreset = TOBACCO_BEETLE_PRESETS.find((p) => p.id === selectedPreset);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -114,7 +187,7 @@ export const InspectionStudio: React.FC<InspectionStudioProps> = ({
       const payload: any = {
         facility_id: facility.id,
         trap_id: selectedTrap,
-        image_uri: customImageUri || (activePreset ? `preset://${activePreset.image}` : "mock://trap"),
+        image_uri: customImageUri || (activePreset ? `preset://${activePreset.id}` : "mock://trap"),
       };
 
       if (detections) {
@@ -148,84 +221,57 @@ export const InspectionStudio: React.FC<InspectionStudioProps> = ({
     }
   };
 
-  // Determine which detections to draw on the trap canvas
-  const displayedDetections: Detection[] =
-    lastResult?.detections ||
-    (selectedPreset !== "custom" && activePreset ? activePreset.detections : []);
+  const displayedDetections =
+    lastResult?.detections || (activePreset ? activePreset.detections : []);
 
   return (
-    <div className="bg-slate-800/90 border border-slate-700/80 rounded-xl p-5 shadow-lg space-y-5">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-700/60 pb-3">
+    <div className="bg-slate-900/90 border border-slate-700/80 rounded-2xl p-5 shadow-xl space-y-5">
+      {/* Studio Header & Dusk Trigger Status */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
         <div>
           <div className="flex items-center gap-2">
-            <Cpu className="w-5 h-5 text-emerald-400" />
-            <h3 className="text-lg font-bold text-white tracking-tight">
-              AI Vision Inspection Terminal
-            </h3>
-            <span className="text-xs px-2 py-0.5 rounded bg-emerald-950/60 border border-emerald-500/30 text-emerald-300 font-mono">
-              YOLOv9 + SAM2
+            <span className="p-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/30">
+              <Microscope className="w-4 h-4" />
             </span>
+            <h3 className="text-base font-bold text-white tracking-tight">
+              YOLOv8-nano Tobacco Beetle Vision &amp; Dusk Trap Chamber
+            </h3>
           </div>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Real-time inference pipeline validating pest counts against facility alarm rules
+          <p className="text-xs text-slate-400 mt-1">
+            Fine-tuned on <em>Lasioderma serricorne</em> morphology • Single daily photo at dusk (peak activity) • Commercial Serricornin lure
           </p>
         </div>
 
-        {/* Trap Selection & Threshold override */}
-        <div className="flex items-center gap-2">
-          <div className="flex items-center bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs">
-            <span className="text-slate-400 mr-1.5">Target Trap:</span>
-            <select
-              id="trap-selector"
-              value={selectedTrap}
-              onChange={(e) => setSelectedTrap(e.target.value)}
-              className="bg-transparent text-white font-medium focus:outline-none cursor-pointer"
-            >
-              {facility.traps.map((t) => (
-                <option key={t} value={t} className="bg-slate-900 text-white">
-                  {t}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex items-center bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs">
-            <span className="text-slate-400 mr-1.5">Rule Threshold:</span>
-            <span className="text-amber-400 font-bold mr-1">
-              {facility.rule?.threshold ?? 5}
-            </span>
-            <input
-              id="custom-threshold-input"
-              type="text"
-              placeholder="Override"
-              value={customThreshold}
-              onChange={(e) => setCustomThreshold(e.target.value)}
-              className="w-14 bg-slate-800 border border-slate-700 rounded px-1.5 py-0.5 text-white text-[11px] focus:outline-none"
-              title="Leave blank to use facility rule"
-            />
-          </div>
+        {/* Dusk Camera Schedule & Serricornin Lure Badge */}
+        <div className="flex items-center gap-2 flex-wrap text-xs font-mono">
+          <span className="flex items-center gap-1 px-2.5 py-1 rounded bg-purple-950 border border-purple-800 text-purple-300">
+            <Clock className="w-3.5 h-3.5" />
+            Dusk Trigger: 19:42 UTC (at sunset)
+          </span>
+          <span className="px-2.5 py-1 rounded bg-slate-800 border border-slate-700 text-slate-300">
+            Lure: Serricornin #L-402 (19d active)
+          </span>
         </div>
       </div>
 
-      {/* Main Grid: Visual Viewport vs Controls & Results */}
+      {/* Main Grid: Trap Camera Canvas vs Morphology & Inference Results */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* Left: Interactive Visual Canvas (Trap Viewport) */}
+        {/* Left: Trap Observation Viewport */}
         <div className="lg:col-span-7 flex flex-col space-y-3">
-          <div className="relative aspect-video w-full rounded-xl bg-slate-950 border border-slate-700/80 overflow-hidden flex items-center justify-center shadow-inner group">
-            {/* Background Grid Pattern simulating trap inspection chamber */}
+          <div className="relative aspect-video w-full rounded-xl bg-slate-950 border border-slate-700 overflow-hidden flex items-center justify-center shadow-inner group">
+            {/* Background Grid Pattern simulating glue pad */}
             <div
-              className="absolute inset-0 opacity-20"
+              className="absolute inset-0 opacity-25"
               style={{
                 backgroundImage:
-                  "radial-gradient(#34d399 1px, transparent 1px), radial-gradient(#64748b 1px, #020617 1px)",
-                backgroundSize: "24px 24px",
-                backgroundPosition: "0 0, 12px 12px",
+                  "radial-gradient(#f59e0b 1px, transparent 1px), radial-gradient(#64748b 1px, #020617 1px)",
+                backgroundSize: "28px 28px",
+                backgroundPosition: "0 0, 14px 14px",
               }}
             />
 
-            {/* Simulated Trap Chamber Surface */}
-            <div className="absolute inset-4 rounded-lg border border-slate-800/80 bg-gradient-to-b from-slate-900/90 to-slate-950/95 flex flex-col items-center justify-center p-4">
+            {/* Pheromone Trap Chamber Base */}
+            <div className="absolute inset-4 rounded-lg border border-slate-800 bg-gradient-to-b from-slate-900/90 to-slate-950/95 flex flex-col items-center justify-center p-4">
               {customImageUri ? (
                 <img
                   src={customImageUri}
@@ -234,15 +280,15 @@ export const InspectionStudio: React.FC<InspectionStudioProps> = ({
                 />
               ) : (
                 <div className="text-center select-none space-y-2">
-                  <div className="inline-flex p-3 rounded-full bg-slate-800/60 border border-slate-700/50 text-slate-400">
-                    <Camera className="w-8 h-8 text-emerald-400/80" />
+                  <div className="inline-flex p-3 rounded-full bg-slate-800/60 border border-slate-700 text-amber-400">
+                    <Camera className="w-8 h-8 text-amber-400" />
                   </div>
                   <div>
-                    <span className="text-sm font-semibold text-slate-300 block">
-                      Trap Station: {selectedTrap}
+                    <span className="text-sm font-semibold text-slate-200 block">
+                      Pheromone Trap: {selectedTrap}
                     </span>
-                    <span className="text-xs text-slate-500 font-mono block">
-                      Camera Stream: Active / 1920x1080 / 30fps
+                    <span className="text-xs text-slate-400 font-mono block">
+                      Dusk Exposure: 19:42:15 UTC • Serricornin Pad Chamber
                     </span>
                   </div>
                 </div>
@@ -250,12 +296,19 @@ export const InspectionStudio: React.FC<InspectionStudioProps> = ({
 
               {/* Bounding Box Overlays */}
               {displayedDetections.map((det, idx) => {
-                const [x = 20 + idx * 15, y = 30 + idx * 10, w = 15, h = 12] =
+                const [x = 20 + idx * 12, y = 25 + idx * 10, w = 15, h = 13] =
                   det.bbox || [];
+                const isTobacco =
+                  det.label.includes("Tobacco") || det.label.includes("Lasioderma");
+
                 return (
                   <div
                     key={idx}
-                    className="absolute border-2 border-amber-400 bg-amber-400/15 rounded transition-all duration-300 animate-pulse hover:bg-amber-400/30"
+                    className={`absolute border-2 rounded transition-all duration-300 animate-pulse ${
+                      isTobacco
+                        ? "border-amber-400 bg-amber-400/20"
+                        : "border-sky-400 bg-sky-400/20"
+                    }`}
                     style={{
                       left: `${x}%`,
                       top: `${y}%`,
@@ -263,200 +316,186 @@ export const InspectionStudio: React.FC<InspectionStudioProps> = ({
                       height: `${h}%`,
                     }}
                   >
-                    <div className="absolute -top-5 left-0 bg-amber-500 text-slate-950 text-[10px] font-bold px-1 py-0.5 rounded shadow whitespace-nowrap">
-                      {det.label} ({Math.round(det.confidence * 100)}%)
+                    <div
+                      className={`absolute -top-6 left-0 text-[10px] font-bold px-1.5 py-0.5 rounded shadow whitespace-nowrap ${
+                        isTobacco
+                          ? "bg-amber-500 text-slate-950"
+                          : "bg-sky-500 text-slate-950"
+                      }`}
+                    >
+                      {isTobacco ? "L. serricorne" : "S. paniceum"} ({Math.round(det.confidence * 100)}%)
                     </div>
                   </div>
                 );
               })}
             </div>
 
-            {/* Live Status Overlay Badges */}
+            {/* Live Camera Badges */}
             <div className="absolute top-2 left-2 flex items-center gap-1.5 z-10">
-              <span className="flex items-center gap-1 px-2 py-0.5 rounded bg-black/60 backdrop-blur-sm border border-slate-700 text-[10px] text-slate-300">
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded bg-black/70 backdrop-blur-sm border border-slate-700 text-[10px] text-slate-300 font-mono">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                LIVE SENSOR
+                DUSK CAPTURE ARCHIVE
               </span>
-              <span className="px-2 py-0.5 rounded bg-black/60 backdrop-blur-sm border border-slate-700 text-[10px] font-mono text-slate-300">
-                FOV: 94°
+              <span className="px-2 py-0.5 rounded bg-black/70 backdrop-blur-sm border border-slate-700 text-[10px] font-mono text-amber-300">
+                LURE: SERRICORNIN
               </span>
             </div>
 
-            {/* Bounding Box Count Overlay */}
             <div className="absolute bottom-2 right-2 z-10">
               <span className="px-2 py-0.5 rounded bg-slate-900/90 border border-slate-700 text-[11px] text-slate-300 font-mono">
-                Detected Objects: {displayedDetections.length}
+                Pests Identified: {displayedDetections.length}
               </span>
             </div>
           </div>
 
-          {/* Quick Presets & File Upload Controls */}
+          {/* Preset Selection Buttons */}
           <div className="space-y-2">
             <span className="text-xs text-slate-400 font-medium block">
-              Inspection Presets & Source Media:
+              Sample Dusk Photos &amp; Morphology Presets:
             </span>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              {SAMPLE_PRESETS.map((preset) => (
+              {TOBACCO_BEETLE_PRESETS.map((preset) => (
                 <button
                   key={preset.id}
-                  id={`preset-btn-${preset.id}`}
                   onClick={() => {
                     setSelectedPreset(preset.id);
                     setCustomImageUri(null);
-                    setSelectedTrap(preset.trapId);
+                    setLastResult(null);
                   }}
-                  className={`text-left p-2.5 rounded-lg border text-xs transition ${
-                    selectedPreset === preset.id && !customImageUri
-                      ? "bg-emerald-950/40 border-emerald-500/80 text-white shadow"
-                      : "bg-slate-900/60 border-slate-700/60 text-slate-300 hover:border-slate-600"
+                  className={`p-2.5 rounded-xl border text-left text-xs transition cursor-pointer ${
+                    selectedPreset === preset.id
+                      ? "bg-amber-500/10 border-amber-500/60 text-white"
+                      : "bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-200"
                   }`}
                 >
-                  <div className="font-semibold">{preset.title}</div>
-                  <div className="text-[10px] text-slate-400 mt-0.5 line-clamp-1">
+                  <span className="font-bold block text-white">{preset.title}</span>
+                  <span className="text-[11px] text-slate-400 block mt-0.5 line-clamp-2">
                     {preset.description}
-                  </div>
+                  </span>
                 </button>
               ))}
-            </div>
-
-            {/* Custom File Upload Option */}
-            <div className="flex items-center gap-2 pt-1">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                onChange={handleFileUpload}
-                className="hidden"
-              />
-              <button
-                id="upload-custom-img-btn"
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-300 transition"
-              >
-                <Upload className="w-3.5 h-3.5 text-slate-400" />
-                {isUploading ? "Uploading..." : "Upload Trap Image (POST /api/v1/images)"}
-              </button>
-              {customImageUri && (
-                <span className="text-[11px] text-emerald-400 font-mono">
-                  Custom image loaded
-                </span>
-              )}
             </div>
           </div>
         </div>
 
-        {/* Right: Trigger Button, AI Detections & ERP Work Order Dispatch */}
+        {/* Right: Inspection Controls & Morphological Analysis Results */}
         <div className="lg:col-span-5 flex flex-col justify-between space-y-4">
-          <div className="space-y-4">
-            {/* Run Button */}
-            <button
-              id="run-inspect-btn"
-              onClick={runInspection}
-              disabled={isInspecting}
-              className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-sm shadow-md transition disabled:opacity-50"
-            >
-              <Cpu className={`w-4 h-4 ${isInspecting ? "animate-spin" : ""}`} />
-              {isInspecting
-                ? "Running YOLOv9 + SAM2 Inference..."
-                : "Run AI Vision Inspection"}
-            </button>
-
-            {/* Detection Summary Card */}
-            <div className="bg-slate-900/80 border border-slate-700/80 rounded-xl p-4 space-y-3">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                  Model Output Detections
-                </span>
-                <span className="text-[11px] font-mono text-emerald-400">
-                  {lastResult ? lastResult.model_version : "yolov9-v1+sam2-v1"}
-                </span>
+          <div className="space-y-3.5">
+            {/* Run Button & Controls */}
+            <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-3.5 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-white">YOLOv8-nano Classifier</span>
+                <span className="text-[11px] font-mono text-emerald-400">Lasioderma v8.2</span>
               </div>
 
-              {displayedDetections.length === 0 ? (
-                <div className="text-center py-6 text-slate-500 text-xs">
-                  No pests detected in active frame. Trap clean.
-                </div>
-              ) : (
-                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                  {displayedDetections.map((d, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center justify-between p-2 rounded-lg bg-slate-800/80 border border-slate-700/50 text-xs"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-amber-400"></span>
-                        <span className="font-semibold text-slate-200 capitalize">
-                          {d.label}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-3 text-[11px] font-mono">
-                        <span className="text-slate-400">
-                          conf:{" "}
-                          <strong className="text-emerald-400">
-                            {Math.round(d.confidence * 100)}%
-                          </strong>
-                        </span>
-                        <span className="text-slate-500">
-                          area: {(d.area_ratio * 100).toFixed(1)}%
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <div className="flex items-center gap-2">
+                <button
+                  id="run-ai-inspect-btn"
+                  onClick={runInspection}
+                  disabled={isInspecting}
+                  className="flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-lg transition cursor-pointer disabled:opacity-50"
+                >
+                  <Cpu className="w-4 h-4" />
+                  {isInspecting ? "Analyzing Dusk Morphology..." : "Execute YOLOv8 Inspection"}
+                </button>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition cursor-pointer"
+                  title="Upload Field Trap Photo"
+                >
+                  <Upload className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
-            {/* Threshold & ERP Dispatch Outcome */}
-            {lastResult && (
-              <div
-                className={`p-4 rounded-xl border text-xs space-y-2 ${
-                  lastResult.threshold_exceeded
-                    ? "bg-rose-950/30 border-rose-500/50 text-rose-200"
-                    : "bg-emerald-950/30 border-emerald-500/50 text-emerald-200"
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 font-bold text-sm">
-                    {lastResult.threshold_exceeded ? (
-                      <>
-                        <AlertOctagon className="w-4 h-4 text-rose-400" />
-                        <span>Threshold Exceeded: Alarm Triggered</span>
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle className="w-4 h-4 text-emerald-400" />
-                        <span>Within Normal Tolerance</span>
-                      </>
-                    )}
+            {/* Morphology Classification Card: Lasioderma vs Stegobium */}
+            <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-3.5 space-y-2.5 text-xs">
+              <div className="flex items-center justify-between text-slate-200 font-bold border-b border-slate-800 pb-1.5">
+                <span className="flex items-center gap-1.5">
+                  <Eye className="w-4 h-4 text-amber-400" />
+                  Morphological Distinction Guide
+                </span>
+                <span className="text-[10px] text-slate-500">Section 2 &amp; 3</span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-[11px]">
+                <div className="p-2 rounded-lg bg-amber-950/30 border border-amber-800/40 space-y-1">
+                  <div className="font-bold text-amber-300">Lasioderma serricorne</div>
+                  <div className="text-slate-300">
+                    • <strong>Antennae:</strong> Saw-toothed (serrate)
                   </div>
-                  <span className="px-2 py-0.5 rounded font-mono text-[11px] bg-black/40">
-                    Count: {lastResult.pest_count} pests
+                  <div className="text-slate-300">
+                    • <strong>Elytra:</strong> Smooth with fine hairs
+                  </div>
+                  <div className="text-slate-300">
+                    • <strong>Head:</strong> Bent down, humped look
+                  </div>
+                </div>
+
+                <div className="p-2 rounded-lg bg-slate-900 border border-slate-800 space-y-1">
+                  <div className="font-bold text-sky-300">Stegobium paniceum</div>
+                  <div className="text-slate-400">
+                    • <strong>Antennae:</strong> 3-segmented club
+                  </div>
+                  <div className="text-slate-400">
+                    • <strong>Elytra:</strong> Distinct grooved lines (striate)
+                  </div>
+                  <div className="text-slate-400">
+                    • <strong>Habitat:</strong> Stored bread/grain
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Inference Outcome Display */}
+            {lastResult && (
+              <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-3.5 space-y-2 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-white">Inference Summary</span>
+                  <span
+                    className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                      lastResult.alert_level === "critical"
+                        ? "bg-rose-950 text-rose-300 border border-rose-700"
+                        : lastResult.alert_level === "warning"
+                        ? "bg-amber-950 text-amber-300 border border-amber-700"
+                        : "bg-emerald-950 text-emerald-300 border border-emerald-700"
+                    }`}
+                  >
+                    {lastResult.alert_level.toUpperCase()} ALERT
                   </span>
                 </div>
 
-                {lastResult.work_order ? (
-                  <div className="mt-2 pt-2 border-t border-rose-500/20 space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-slate-100 flex items-center gap-1">
-                        <FileText className="w-3.5 h-3.5 text-amber-400" />
-                        Autonomous ERP Work Order Created:
-                      </span>
-                      <span className="px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 font-mono text-[10px]">
-                        Priority: {lastResult.work_order.priority.toUpperCase()}
-                      </span>
-                    </div>
-                    <div className="font-mono text-[11px] text-slate-300">
-                      ID: {lastResult.work_order.work_order_id}
-                    </div>
-                    <div className="text-[11px] text-slate-400">
-                      Reason: {lastResult.work_order.reason}
-                    </div>
+                <div className="grid grid-cols-2 gap-2 text-[11px] pt-1">
+                  <div>
+                    <span className="text-slate-400 block">Tobacco Beetles:</span>
+                    <strong className="text-amber-400 text-sm">{lastResult.tobacco_beetle_count}</strong>
                   </div>
-                ) : (
-                  <div className="text-slate-400 text-[11px]">
-                    No action required. Facility pest count is below alarm threshold.
+                  <div>
+                    <span className="text-slate-400 block">Drugstore Beetles:</span>
+                    <strong className="text-sky-400 text-sm">{lastResult.drugstore_beetle_count}</strong>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block">Composite Risk Score:</span>
+                    <strong className="text-white text-sm">{lastResult.risk_score} / 100</strong>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block">Est. Hidden Larvae:</span>
+                    <strong className="text-purple-300 text-sm">~{lastResult.hidden_larval_estimate}</strong>
+                  </div>
+                </div>
+
+                {lastResult.work_order && (
+                  <div className="p-2 rounded bg-rose-950/40 border border-rose-800/60 text-rose-200 text-[11px] mt-2">
+                    <strong>Recommended Field Action:</strong> {lastResult.work_order.recommended_action}
                   </div>
                 )}
               </div>

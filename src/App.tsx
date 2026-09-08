@@ -1,19 +1,45 @@
 import React, { useState, useEffect } from "react";
 import { Header } from "./components/Header";
+import { Login } from "./components/Login";
 import { FacilityOverview } from "./components/FacilityOverview";
+import { TobaccoBeetleAnalytics } from "./components/TobaccoBeetleAnalytics";
+import { DocumentedActionLog } from "./components/DocumentedActionLog";
 import { InspectionStudio } from "./components/InspectionStudio";
 import { VoiceAgentCard } from "./components/VoiceAgentCard";
 import { WorkOrdersTable } from "./components/WorkOrdersTable";
 import { AuditLogSection } from "./components/AuditLogSection";
 import { UserRole, UserSession, FacilityInfo, AlertRule, WorkOrder, InspectionResult } from "./types";
-import { ShieldCheck, Info, CheckCircle, Database, GitBranch, Layers } from "lucide-react";
+import {
+  ShieldCheck,
+  Info,
+  CheckCircle,
+  Database,
+  GitBranch,
+  Layers,
+  BarChart3,
+  ClipboardList,
+  Camera,
+  Wrench,
+  Mic,
+  ScrollText,
+} from "lucide-react";
 
 export default function App() {
-  const [session, setSession] = useState<UserSession>({
-    username: "demo",
-    role: "facility_manager",
-    tenant_id: "tenant-demo",
-    token: "",
+  const [session, setSession] = useState<UserSession>(() => {
+    try {
+      const saved = sessionStorage.getItem("pmas_session");
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch {
+      // ignore
+    }
+    return {
+      username: "",
+      role: "facility_manager",
+      tenant_id: "",
+      token: "",
+    };
   });
 
   const [facilities, setFacilities] = useState<FacilityInfo[]>([
@@ -34,6 +60,9 @@ export default function App() {
   ]);
 
   const [selectedFacilityId, setSelectedFacilityId] = useState<string>("facility-1");
+  const [activeTab, setActiveTab] = useState<
+    "analytics" | "actions" | "vision" | "work_orders" | "voice" | "audit" | "all"
+  >("analytics");
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
   const [apiHealthy, setApiHealthy] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
@@ -61,12 +90,18 @@ export default function App() {
 
       if (res.ok) {
         const data = await res.json();
-        setSession({
+        const updated: UserSession = {
           username,
           role,
           tenant_id: data.user.tenant_id,
           token: data.access_token,
-        });
+        };
+        setSession(updated);
+        try {
+          sessionStorage.setItem("pmas_session", JSON.stringify(updated));
+        } catch {
+          // ignore
+        }
         return data.access_token;
       }
     } catch (err) {
@@ -108,9 +143,13 @@ export default function App() {
 
   // Initialize
   useEffect(() => {
-    authenticate("facility_manager").then((tok) => {
-      loadData(tok);
-    });
+    fetch("/health")
+      .then((res) => setApiHealthy(res.ok))
+      .catch(() => setApiHealthy(false));
+
+    if (session.token) {
+      loadData(session.token);
+    }
   }, []);
 
   // When facility changes, refresh work orders
@@ -123,6 +162,32 @@ export default function App() {
         .then((data) => setWorkOrders(data));
     }
   }, [selectedFacilityId, session.token]);
+
+  const handleLoginSuccess = (newSession: UserSession) => {
+    setSession(newSession);
+    try {
+      sessionStorage.setItem("pmas_session", JSON.stringify(newSession));
+    } catch {
+      // ignore
+    }
+    loadData(newSession.token);
+    showNotification(`Authenticated as ${newSession.username} (${newSession.role})`);
+  };
+
+  const handleLogout = () => {
+    try {
+      sessionStorage.removeItem("pmas_session");
+    } catch {
+      // ignore
+    }
+    setSession({
+      username: "",
+      role: "facility_manager",
+      tenant_id: "",
+      token: "",
+    });
+    showNotification("Signed out of PMAS platform");
+  };
 
   const handleRoleChange = async (newRole: UserRole) => {
     const tok = await authenticate(newRole);
@@ -194,6 +259,16 @@ export default function App() {
   const activeFacility =
     facilities.find((f) => f.id === selectedFacilityId) || facilities[0];
 
+  // If user is not authenticated, display dedicated PMAS Login Screen
+  if (!session.token) {
+    return (
+      <Login
+        onLoginSuccess={handleLoginSuccess}
+        apiHealthy={apiHealthy}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
       {/* Top Navigation */}
@@ -206,6 +281,7 @@ export default function App() {
         apiHealthy={apiHealthy}
         onRefresh={() => loadData()}
         isRefreshing={isRefreshing}
+        onLogout={handleLogout}
       />
 
       {/* Floating Notification Toast */}
@@ -218,32 +294,35 @@ export default function App() {
 
       {/* Main Content Dashboard */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* Architecture & Multi-Tenant Context Ribbon */}
-        <div className="bg-gradient-to-r from-slate-900 to-slate-800 border border-slate-700/60 rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs">
+        {/* Architecture & Tobacco Beetle Domain Ribbon */}
+        <div className="bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 border border-slate-750 rounded-2xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs shadow-lg">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
-              <Layers className="w-4 h-4" />
+            <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400">
+              <Layers className="w-5 h-5" />
             </div>
             <div>
-              <span className="font-bold text-slate-100 block">
-                M-PAS Industrial Pest-Management & Automation Ecosystem
+              <span className="font-bold text-slate-100 text-sm block">
+                Tobacco Beetle (<em>Lasioderma serricorne</em>) Monitoring &amp; Prediction System
               </span>
               <span className="text-slate-400 text-[11px]">
-                Multi-Tenant Scopes • YOLOv9 & SAM2 Vision Inference • Autonomous ERP Queue • Voice Seam
+                Serricornin smart traps • Humidity-weighted microclimate risk engine (45/35/20) • 15-20 day breeding wave forecast
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-2 font-mono text-[11px] text-slate-400">
-            <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">
+          <div className="flex items-center gap-2 font-mono text-[11px] text-slate-400 flex-wrap">
+            <span className="px-2.5 py-1 rounded bg-slate-800 border border-slate-700">
               Role: <strong className="text-amber-400">{session.role}</strong>
             </span>
-            <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">
-              Tenant: <strong className="text-emerald-400">{session.tenant_id}</strong>
+            <span className="px-2.5 py-1 rounded bg-slate-800 border border-slate-700">
+              Sensor: <strong className="text-cyan-400">SHT31 (RH &amp; Temp)</strong>
+            </span>
+            <span className="px-2.5 py-1 rounded bg-slate-800 border border-slate-700">
+              Model: <strong className="text-emerald-400">YOLOv8-nano</strong>
             </span>
           </div>
         </div>
 
-        {/* Facility Policy & Metrics */}
+        {/* Facility Policy & Key Environmental Indicators */}
         {activeFacility && (
           <FacilityOverview
             facility={activeFacility}
@@ -253,44 +332,190 @@ export default function App() {
           />
         )}
 
-        {/* Two-Column Core Operational Area */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* AI Inspection Studio */}
-          <div className="lg:col-span-12">
-            <InspectionStudio
-              facility={activeFacility}
-              token={session.token}
-              onInspectionCompleted={handleInspectionCompleted}
-            />
-          </div>
+        {/* Operational View Switcher Tabs */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 border-b border-slate-800 text-xs font-semibold">
+          <button
+            id="tab-analytics-btn"
+            onClick={() => setActiveTab("analytics")}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition cursor-pointer whitespace-nowrap ${
+              activeTab === "analytics"
+                ? "bg-amber-500/15 text-amber-300 border border-amber-500/40 shadow-sm"
+                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
+            }`}
+          >
+            <BarChart3 className="w-4 h-4 text-amber-400" />
+            <span>Telemetry &amp; 15-20d Predictive Engine</span>
+          </button>
 
-          {/* Voice Agent Card */}
-          <div className="lg:col-span-5">
+          <button
+            id="tab-actions-btn"
+            onClick={() => setActiveTab("actions")}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition cursor-pointer whitespace-nowrap ${
+              activeTab === "actions"
+                ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/40 shadow-sm"
+                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
+            }`}
+          >
+            <ClipboardList className="w-4 h-4 text-emerald-400" />
+            <span>Documented Actions &amp; 15-20d Impact</span>
+          </button>
+
+          <button
+            id="tab-vision-btn"
+            onClick={() => setActiveTab("vision")}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition cursor-pointer whitespace-nowrap ${
+              activeTab === "vision"
+                ? "bg-sky-500/15 text-sky-300 border border-sky-500/40 shadow-sm"
+                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
+            }`}
+          >
+            <Camera className="w-4 h-4 text-sky-400" />
+            <span>YOLOv8 Dusk Trap &amp; Morphology</span>
+          </button>
+
+          <button
+            id="tab-workorders-btn"
+            onClick={() => setActiveTab("work_orders")}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition cursor-pointer whitespace-nowrap ${
+              activeTab === "work_orders"
+                ? "bg-rose-500/15 text-rose-300 border border-rose-500/40 shadow-sm"
+                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
+            }`}
+          >
+            <Wrench className="w-4 h-4 text-rose-400" />
+            <span>ERP Remediation Work Orders ({workOrders.length})</span>
+          </button>
+
+          <button
+            id="tab-voice-btn"
+            onClick={() => setActiveTab("voice")}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition cursor-pointer whitespace-nowrap ${
+              activeTab === "voice"
+                ? "bg-purple-500/15 text-purple-300 border border-purple-500/40 shadow-sm"
+                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
+            }`}
+          >
+            <Mic className="w-4 h-4 text-purple-400" />
+            <span>Voice Command Assistant</span>
+          </button>
+
+          <button
+            id="tab-audit-btn"
+            onClick={() => setActiveTab("audit")}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition cursor-pointer whitespace-nowrap ${
+              activeTab === "audit"
+                ? "bg-slate-700 text-white border border-slate-600 shadow-sm"
+                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
+            }`}
+          >
+            <ScrollText className="w-4 h-4 text-slate-400" />
+            <span>Audit Trail</span>
+          </button>
+
+          <button
+            id="tab-all-btn"
+            onClick={() => setActiveTab("all")}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition cursor-pointer whitespace-nowrap ${
+              activeTab === "all"
+                ? "bg-slate-700 text-white border border-slate-600 shadow-sm"
+                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
+            }`}
+          >
+            <Layers className="w-4 h-4 text-slate-300" />
+            <span>All Modules</span>
+          </button>
+        </div>
+
+        {/* Tab View Content Rendering */}
+        {activeTab === "analytics" && (
+          <TobaccoBeetleAnalytics
+            facilityId={selectedFacilityId}
+            token={session.token}
+            onOpenActionModal={() => setActiveTab("actions")}
+          />
+        )}
+
+        {activeTab === "actions" && (
+          <DocumentedActionLog
+            facilityId={selectedFacilityId}
+            token={session.token}
+            role={session.role}
+          />
+        )}
+
+        {activeTab === "vision" && (
+          <InspectionStudio
+            facility={activeFacility}
+            token={session.token}
+            onInspectionCompleted={handleInspectionCompleted}
+          />
+        )}
+
+        {activeTab === "work_orders" && (
+          <WorkOrdersTable
+            workOrders={workOrders}
+            role={session.role}
+            onUpdateStatus={handleUpdateWorkOrderStatus}
+            facilityId={selectedFacilityId}
+          />
+        )}
+
+        {activeTab === "voice" && (
+          <div className="max-w-2xl mx-auto">
             <VoiceAgentCard
               session={session}
               facilityId={selectedFacilityId}
               onVoiceCommandSuccess={() => loadData()}
             />
           </div>
+        )}
 
-          {/* ERP Work Orders Table */}
-          <div className="lg:col-span-7">
-            <WorkOrdersTable
-              workOrders={workOrders}
-              role={session.role}
-              onUpdateStatus={handleUpdateWorkOrderStatus}
+        {activeTab === "audit" && (
+          <AuditLogSection role={session.role} token={session.token} />
+        )}
+
+        {activeTab === "all" && (
+          <div className="space-y-6">
+            <TobaccoBeetleAnalytics
               facilityId={selectedFacilityId}
+              token={session.token}
+              onOpenActionModal={() => setActiveTab("actions")}
             />
+            <DocumentedActionLog
+              facilityId={selectedFacilityId}
+              token={session.token}
+              role={session.role}
+            />
+            <InspectionStudio
+              facility={activeFacility}
+              token={session.token}
+              onInspectionCompleted={handleInspectionCompleted}
+            />
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              <div className="lg:col-span-5">
+                <VoiceAgentCard
+                  session={session}
+                  facilityId={selectedFacilityId}
+                  onVoiceCommandSuccess={() => loadData()}
+                />
+              </div>
+              <div className="lg:col-span-7">
+                <WorkOrdersTable
+                  workOrders={workOrders}
+                  role={session.role}
+                  onUpdateStatus={handleUpdateWorkOrderStatus}
+                  facilityId={selectedFacilityId}
+                />
+              </div>
+            </div>
+            <AuditLogSection role={session.role} token={session.token} />
           </div>
-        </div>
-
-        {/* Executive Audit Log Section */}
-        <AuditLogSection role={session.role} token={session.token} />
+        )}
       </main>
 
       {/* Footer */}
       <footer className="border-t border-slate-800/80 bg-slate-900/60 py-4 text-center text-xs text-slate-500 font-mono">
-        M-PAS Platform (Machine-Vision Pest Alert System) • FastAPI/Node Adapter • All rights reserved
+        PMAS Platform (Pest Management Automation System) • Node/Express & React Runtime • All rights reserved
       </footer>
     </div>
   );

@@ -1,6 +1,7 @@
 import React from "react";
-import { ShieldCheck, Cpu, Building2, UserCircle, RefreshCw } from "lucide-react";
+import { ShieldCheck, Cpu, Building2, UserCircle, RefreshCw, LogOut } from "lucide-react";
 import { UserRole, UserSession, FacilityInfo } from "../types";
+import pmasLogo from "../assets/images/pmas_logo_1788905609728.jpg";
 
 interface HeaderProps {
   session: UserSession;
@@ -11,6 +12,7 @@ interface HeaderProps {
   apiHealthy: boolean;
   onRefresh: () => void;
   isRefreshing: boolean;
+  onLogout: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -22,6 +24,7 @@ export const Header: React.FC<HeaderProps> = ({
   apiHealthy,
   onRefresh,
   isRefreshing,
+  onLogout,
 }) => {
   return (
     <header className="bg-slate-900 border-b border-slate-800 text-slate-100 sticky top-0 z-30 shadow-md">
@@ -29,18 +32,23 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center justify-between h-16 gap-4">
           {/* Logo & System Status */}
           <div className="flex items-center space-x-3">
-            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold tracking-wider">
-              M
+            <div className="relative w-10 h-10 rounded-lg overflow-hidden border border-emerald-500/40 bg-slate-950 flex items-center justify-center shadow-sm shrink-0">
+              <img
+                src={pmasLogo}
+                alt="PMAS Logo"
+                referrerPolicy="no-referrer"
+                className="w-full h-full object-cover"
+              />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-lg text-slate-100 tracking-tight">M-PAS</span>
-                <span className="text-xs font-mono uppercase px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
-                  v0.1.0
+                <span className="font-bold text-lg text-slate-100 tracking-tight">PMAS</span>
+                <span className="text-xs font-mono uppercase px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800">
+                  Lasioderma AI
                 </span>
               </div>
               <p className="text-xs text-slate-400 hidden sm:block">
-                Industrial Pest-Management & AI Inspection Platform
+                Tobacco Beetle Predictive Monitoring &amp; Microclimate Engine
               </p>
             </div>
           </div>
@@ -52,13 +60,13 @@ export const Header: React.FC<HeaderProps> = ({
                 apiHealthy ? "bg-emerald-400 animate-pulse" : "bg-rose-400"
               }`}
             />
-            <span className="text-slate-300 font-medium">AI Engine:</span>
-            <span className="text-emerald-400 font-semibold flex items-center gap-1">
-              <Cpu className="w-3.5 h-3.5" /> YOLOv9 + SAM2 Ready
+            <span className="text-slate-300 font-medium">Model:</span>
+            <span className="text-amber-400 font-semibold flex items-center gap-1">
+              <Cpu className="w-3.5 h-3.5" /> YOLOv8-nano + Sensirion SHT31
             </span>
           </div>
 
-          {/* Controls: Facility Selector & Role Switcher */}
+          {/* Controls: Facility Selector & Role Switcher & Sign Out */}
           <div className="flex items-center space-x-3">
             {/* Facility Selector */}
             <div className="flex items-center space-x-1.5 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs">
@@ -89,7 +97,7 @@ export const Header: React.FC<HeaderProps> = ({
                 className="bg-transparent text-slate-200 font-medium focus:outline-none cursor-pointer"
               >
                 <option value="facility_manager" className="bg-slate-900 text-slate-200">
-                  Facility Manager (demo)
+                  Facility Manager ({session.username})
                 </option>
                 <option value="field_technician" className="bg-slate-900 text-slate-200">
                   Field Tech (tech)
@@ -109,6 +117,17 @@ export const Header: React.FC<HeaderProps> = ({
               className="p-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-slate-200 hover:bg-slate-700 transition"
             >
               <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} />
+            </button>
+
+            {/* Sign Out Button */}
+            <button
+              id="logout-btn"
+              onClick={onLogout}
+              title="Sign Out"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 hover:text-rose-300 transition text-xs font-medium"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Sign Out</span>
             </button>
           </div>
         </div>

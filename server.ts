@@ -362,35 +362,127 @@ async function startServer() {
     res.json(events);
   });
 
-  // Facilities Overview: List active facilities
+  // Facilities Overview: List active tobacco storage facilities
   app.get("/api/v1/facilities", (req, res) => {
     const facilities = [
       {
         id: "facility-1",
-        name: "Distribution Center Alpha",
-        zone: "Cold Storage & Bay 3",
-        traps: ["trap-1", "trap-2"],
+        name: "Tobacco Warehouse Alpha (Cured Leaf)",
+        zone: "Bay 3 & Stack Rows 1-8",
+        traps: ["trap-tb-01", "trap-tb-02"],
         rule: alertStore.get("facility-1"),
         workOrdersCount: alertStore.listWorkOrders("facility-1").length,
+        baseline_count: 3,
+        current_temperature: 32.8,
+        current_humidity: 67.2,
+        sunset_time: "19:42 UTC (Dusk camera trigger)",
+        serricornin_lure_age_days: 21,
       },
       {
         id: "facility-demo",
-        name: "Food Processing Plant B",
-        zone: "Packaging & Assembly Line",
-        traps: ["trap-2", "trap-3"],
+        name: "Tobacco Warehouse Beta (Conditioning)",
+        zone: "Fermentation Chambers & Pallet Rack 4",
+        traps: ["trap-tb-03", "trap-tb-04"],
         rule: alertStore.get("facility-demo"),
         workOrdersCount: alertStore.listWorkOrders("facility-demo").length,
+        baseline_count: 2,
+        current_temperature: 28.5,
+        current_humidity: 54.0,
+        sunset_time: "19:42 UTC (Dusk camera trigger)",
+        serricornin_lure_age_days: 14,
       },
       {
         id: "facility-voice",
-        name: "Grain Silo Complex 4",
-        zone: "Grain Elevator & Milling",
-        traps: ["trap-9"],
+        name: "Flue-Cured Storage Silo Gamma",
+        zone: "Bulk Tobacco Bales & Packaging",
+        traps: ["trap-tb-09"],
         rule: alertStore.get("facility-voice"),
         workOrdersCount: alertStore.listWorkOrders("facility-voice").length,
+        baseline_count: 3,
+        current_temperature: 31.0,
+        current_humidity: 62.5,
+        sunset_time: "19:42 UTC (Dusk camera trigger)",
+        serricornin_lure_age_days: 35,
       },
     ];
     res.json(facilities);
+  });
+
+  // Telemetry: 30-day time-series, risk score decomposition, 15-20d forecast & MVP KPIs
+  app.get("/api/v1/facilities/:facility_id/telemetry", optionalAuthMiddleware, (req, res) => {
+    const facility_id = String(req.params.facility_id);
+    const data = alertStore.getTelemetry(facility_id);
+    res.json(data);
+  });
+
+  // Documented Actions: List for facility
+  app.get("/api/v1/facilities/:facility_id/actions", optionalAuthMiddleware, (req, res) => {
+    const facility_id = String(req.params.facility_id);
+    const list = alertStore.listActions(facility_id);
+    res.json(list);
+  });
+
+  // Documented Actions: Log new remediation action
+  app.post("/api/v1/facilities/:facility_id/actions", optionalAuthMiddleware, (req, res) => {
+    const facility_id = String(req.params.facility_id);
+    const claims = (req as any).claims as TokenClaims | undefined;
+    const { trap_id, alert_level, risk_score, trigger_reason, action_type, action_title, action_details, pre_action_count } = req.body;
+
+    if (!trap_id || !action_type || !action_title) {
+      return res.status(422).json({ detail: "trap_id, action_type, and action_title are required" });
+    }
+
+    const action_id = `act-${Date.now().toString(36)}`;
+    const followUpDate = new Date(Date.now() + 86400000 * 18).toISOString().split("T")[0]; // 18 days follow-up
+
+    const newAction = alertStore.logAction({
+      action_id,
+      facility_id,
+      trap_id,
+      alert_level: alert_level || "warning",
+      risk_score: Number(risk_score) || 65,
+      trigger_reason: trigger_reason || "Preventive action per MPAS threshold warning",
+      action_type,
+      action_title,
+      action_details: action_details || "",
+      logged_at: new Date().toISOString(),
+      logged_by: claims?.sub ? `${claims.sub} (${claims.role})` : "field-operator",
+      follow_up_date: followUpDate,
+      status: "awaiting_15d_measurement",
+      pre_action_count: Number(pre_action_count) || 5,
+    });
+
+    alertStore.audit(claims?.sub || "operator", "action.logged", action_id, {
+      facility_id,
+      action_type,
+      action_title,
+    });
+
+    res.json(newAction);
+  });
+
+  // Documented Actions: Measure 15-20 Day Impact
+  app.post("/api/v1/facilities/:facility_id/actions/:action_id/measure", optionalAuthMiddleware, (req, res) => {
+    const action_id = String(req.params.action_id);
+    const claims = (req as any).claims as TokenClaims | undefined;
+    const { post_action_count, notes } = req.body;
+
+    if (post_action_count === undefined) {
+      return res.status(422).json({ detail: "post_action_count is required for 15-20 day impact measurement" });
+    }
+
+    const updated = alertStore.measureActionImpact(action_id, Number(post_action_count), notes || "");
+    if (!updated) {
+      return res.status(404).json({ detail: "Documented action not found" });
+    }
+
+    alertStore.audit(claims?.sub || "operator", "action.impact_measured", action_id, {
+      pre_count: updated.pre_action_count,
+      post_count: updated.post_action_count_15d,
+      reduction_pct: updated.reduction_pct,
+    });
+
+    res.json(updated);
   });
 
   // --- Vite Middleware for Development / Static for Production ---
