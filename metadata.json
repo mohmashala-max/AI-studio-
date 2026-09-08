@@ -1,0 +1,6 @@
+{
+  "name": "M-PAS Platform",
+  "description": "Industrial pest-management platform for multi-tenant facilities, smart traps, AI inspections, field operations, and ERP work orders.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
