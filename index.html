@@ -1,15 +1,38 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr" class="dark">
   <head>
     <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
+    
+    <!-- Universal Browser Theme & Appearance -->
+    <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="PMAS" />
+    <meta name="format-detection" content="telephone=no, date=no, address=no, email=no" />
+    <meta name="msapplication-TileColor" content="#0f172a" />
+
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+
+    <!-- Cross-browser Google Fonts (Cairo for Arabic + Inter for English/Data) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
     <title>M-PAS Platform</title>
     <meta name="description" content="AI-Powered Tobacco Beetle (Lasioderma serricorne) Monitoring & Prediction System with Serricornin smart traps, humidity-weighted microclimate risk engine, and 15-20 day breeding wave forecasting." />
     <meta property="og:title" content="M-PAS Platform" />
     <meta property="og:description" content="AI-Powered Tobacco Beetle (Lasioderma serricorne) Monitoring & Prediction System with Serricornin smart traps, humidity-weighted microclimate risk engine, and 15-20 day breeding wave forecasting." />
   </head>
-  <body class="bg-slate-900 text-slate-100 min-h-screen antialiased">
+  <body class="bg-slate-900 text-slate-100 min-h-screen antialiased selection:bg-amber-500/30 selection:text-amber-200">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

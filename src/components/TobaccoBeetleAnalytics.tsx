@@ -338,7 +338,7 @@ export const TobaccoBeetleAnalytics: React.FC<TobaccoBeetleAnalyticsProps> = ({
         </div>
 
         {/* Recharts Chart Container */}
-        <div className="h-72 w-full">
+        <div className="h-72 w-full min-h-[288px] min-w-0 relative">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
               data={telemetry}
@@ -497,7 +497,7 @@ export const TobaccoBeetleAnalytics: React.FC<TobaccoBeetleAnalyticsProps> = ({
           </span>
         </div>
 
-        <div className="h-56 w-full mt-4">
+        <div className="h-56 w-full min-h-[224px] min-w-0 mt-4 relative">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={forecast} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.4} />

@@ -1,6 +1,6 @@
 {
   "name": "M-PAS Platform",
   "description": "AI-Powered Tobacco Beetle (Lasioderma serricorne) Monitoring & Prediction System with Serricornin smart traps, humidity-weighted microclimate risk engine, and 15-20 day breeding wave forecasting.",
-  "requestFramePermissions": [],
+  "requestFramePermissions": ["camera"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

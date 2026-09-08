@@ -22,6 +22,7 @@ import {
   Wrench,
   Mic,
   ScrollText,
+  LogOut,
 } from "lucide-react";
 
 export default function App() {
@@ -47,7 +48,7 @@ export default function App() {
       id: "facility-1",
       name: "Distribution Center Alpha",
       zone: "Cold Storage & Bay 3",
-      traps: ["trap-1", "trap-2"],
+      traps: ["trap-tb-01", "trap-tb-02", "trap-tb-03", "trap-tb-04"],
       rule: {
         facility_id: "facility-1",
         pest_type: "any",
@@ -310,6 +311,9 @@ export default function App() {
             </div>
           </div>
           <div className="flex items-center gap-2 font-mono text-[11px] text-slate-400 flex-wrap">
+            <span className="px-2.5 py-1 rounded bg-slate-800 border border-slate-700 font-sans">
+              User: <strong className="text-slate-200">{session.username || "demo"}</strong>
+            </span>
             <span className="px-2.5 py-1 rounded bg-slate-800 border border-slate-700">
               Role: <strong className="text-amber-400">{session.role}</strong>
             </span>
@@ -319,6 +323,15 @@ export default function App() {
             <span className="px-2.5 py-1 rounded bg-slate-800 border border-slate-700">
               Model: <strong className="text-emerald-400">YOLOv8-nano</strong>
             </span>
+            <button
+              id="dashboard-ribbon-logout-btn"
+              onClick={handleLogout}
+              className="px-2.5 py-1 rounded bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 hover:text-white border border-rose-500/40 font-sans font-semibold flex items-center gap-1.5 transition cursor-pointer shadow-sm"
+              title="Logout from dashboard"
+            >
+              <LogOut className="w-3 h-3" />
+              <span>Logout</span>
+            </button>
           </div>
         </div>
 
